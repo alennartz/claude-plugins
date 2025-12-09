@@ -1,0 +1,9 @@
+{
+  "name": "playwright-ui-tester",
+  "version": "1.0.0",
+  "description": "Playwright-based UI testing agent that returns concise, actionable results with code paths",
+  "author": {
+    "name": "Antoine Lennartz"
+  },
+  "keywords": ["playwright", "testing", "ui", "e2e", "browser", "mcp"]
+}
