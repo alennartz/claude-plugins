@@ -1,0 +1,18 @@
+{
+  "name": "claude-plugins",
+  "owner": {
+    "name": "Antoine Lennartz"
+  },
+  "plugins": [
+    {
+      "name": "playwright-ui-tester",
+      "source": "./playwright-ui-tester",
+      "description": "Playwright-based UI testing agent that returns concise, actionable results with code paths",
+      "version": "1.0.0",
+      "author": {
+        "name": "Antoine Lennartz"
+      },
+      "keywords": ["playwright", "testing", "ui", "e2e", "browser", "mcp"]
+    }
+  ]
+}
