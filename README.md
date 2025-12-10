@@ -36,13 +36,12 @@ Then install plugins with:
 
 ### playwright-ui-tester
 
-A Playwright-based UI testing agent that returns concise, actionable results with code paths.
+A Playwright-based UI testing skill that returns concise, actionable results with code paths.
 
 **Features:**
 - Concise pass/fail tables instead of verbose MCP output
 - Automatic code path discovery when bugs are found
-- Auto-delegation via companion skill
-- Model flexible (inherits parent, overridable per-test)
+- Auto-delegation to general-purpose agent with MCP tool access
 
 **Prerequisites:**
 - Playwright MCP server configured in your `.mcp.json`

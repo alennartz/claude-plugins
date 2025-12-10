@@ -1,13 +1,12 @@
 # Playwright UI Tester Plugin
 
-A Claude Code plugin providing a specialized subagent for Playwright-based UI testing that returns concise, actionable results instead of verbose MCP output.
+A Claude Code plugin providing a skill for Playwright-based UI testing that returns concise, actionable results instead of verbose MCP output.
 
 ## Features
 
 - **Concise Results**: Returns pass/fail tables, not raw page snapshots
 - **Code Path Discovery**: Identifies relevant source files when bugs are found
-- **Auto-Delegation**: Companion skill automatically delegates UI testing requests
-- **Model Flexible**: Inherits parent model, overridable per-test
+- **Auto-Delegation**: Skill automatically delegates UI testing requests to a general-purpose agent
 
 ## Installation
 
@@ -22,45 +21,12 @@ Restart Claude Code after installation for changes to take effect.
 
 ## Usage
 
-### Automatic (via Skill)
-
 Simply ask Claude to test UI:
 - "Check if the graph displays correctly"
 - "Verify the form submission works"
 - "Test the login flow"
 
-The `ui-testing` skill will automatically delegate to the `ui-tester` agent.
-
-### Manual Delegation
-
-```
-Task(
-  subagent_type="ui-tester",
-  prompt="""
-    Test http://localhost:3000:
-
-    ## Assertions
-    1. Login button is visible
-    2. Form validates email format
-    3. Success message appears after submit
-
-    ## If Issues Found
-    - Search for relevant component files
-    - Include file paths in response
-  """
-)
-```
-
-### With Specific Model
-
-For faster/cheaper tests:
-```
-Task(
-  subagent_type="ui-tester",
-  model="haiku",
-  prompt="..."
-)
-```
+The `ui-testing` skill will automatically delegate to a `general-purpose` agent with MCP tool access.
 
 ## Output Format
 
@@ -109,8 +75,6 @@ The agent returns structured results:
 playwright-ui-tester/
 ├── .claude-plugin/
 │   └── plugin.json          # Plugin manifest
-├── agents/
-│   └── ui-tester.md         # Subagent definition
 ├── skills/
 │   └── ui-testing/
 │       └── SKILL.md         # Auto-delegation skill
