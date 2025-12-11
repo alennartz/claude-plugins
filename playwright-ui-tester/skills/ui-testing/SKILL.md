@@ -23,6 +23,10 @@ If the user's request involves ANY of these, immediately delegate:
 - "check the webapp"
 - "verify the changes in browser"
 
+## Delegation Strategy
+
+If you need to test many different parts of the UI or are working from a detailed test plan, break the work into multiple delegations, each with focused assertions. Then delegate the work concurrently to multiple `general-purpose` agents, each with its own Task tool call.
+
 ## How to Delegate
 
 Task(
