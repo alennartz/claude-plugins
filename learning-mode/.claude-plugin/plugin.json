@@ -1,0 +1,10 @@
+{
+  "name": "learning-mode",
+  "description": "Socratic development mentor for early-career engineers: teaches through questioning, not answering",
+  "version": "0.1.0",
+  "author": {
+    "name": "Antoine Lennartz"
+  },
+  "license": "MIT",
+  "keywords": ["education", "socratic", "mentoring", "early-career", "learning", "architecture", "debugging"]
+}
