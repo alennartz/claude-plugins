@@ -62,8 +62,8 @@ digraph executing_plans {
 
     // Completion
     more_items [label="More items?" shape=diamond];
-    milestone_review [label="Milestone code review\n(learning-mode:\nrequesting-code-review)"];
-    receive_review [label="Process review feedback\n(learning-mode:\nreceiving-code-review)"];
+    milestone_review [label="Milestone code review\n(code-reviewer agent)"];
+    receive_review [label="Process review feedback\n(learning-mode:\nevaluating-code-review)"];
     verify [label="Verify all tests pass\n(learning-mode:\nverification-before-completion)"];
     docs [label="Update documentation\n(non-Socratic)"];
     summary [label="Present summary\nand retrospective" shape=doublecircle];
@@ -235,7 +235,7 @@ Commit the task with a message connecting it to the design: "This implements the
 
 ## Step 4: Milestone Code Review
 
-After all tasks are executed, dispatch a **single milestone code review** using `learning-mode:requesting-code-review`. This review covers the entire implementation, not individual tasks.
+After all tasks are executed, dispatch the **code-reviewer agent** (`learning-mode:code-reviewer`) for a single milestone review covering the entire implementation. Provide the full git range from the start of the feature branch to HEAD, the design document, and the plan.
 
 The milestone review is valuable because it sees:
 - How components actually interact (not just each in isolation)
@@ -243,7 +243,7 @@ The milestone review is valuable because it sees:
 - Cross-cutting concerns (error handling consistency, naming conventions, test coverage patterns)
 - Issues that only emerge at the integration level
 
-Process the review feedback through `learning-mode:receiving-code-review` -- the learner evaluates the review comments, classifies them, and defends their reasoning. This is a Socratic teaching flow.
+Process the review feedback through `learning-mode:evaluating-code-review` -- the learner evaluates the review comments, classifies them, and defends their reasoning. This is a Socratic teaching flow.
 
 ## Step 5: Verification
 
@@ -314,11 +314,11 @@ These thoughts mean STOP -- you are drifting from the process:
 
 ## Integration with Other Skills
 
-| Skill | When | How |
+| Skill / Agent | When | How |
 |-------|------|-----|
 | `learning-mode:test-driven-development` | During subagent execution | Each subagent follows TDD for its task |
-| `learning-mode:requesting-code-review` | After all tasks complete | Single milestone review of entire implementation |
-| `learning-mode:receiving-code-review` | After milestone review returns | Learner evaluates review feedback (Socratic) |
+| `learning-mode:code-reviewer` (agent) | After AUTO batches, REVIEW tasks, and milestone | Single-pass review against spec and quality |
+| `learning-mode:evaluating-code-review` | After milestone review returns | Learner evaluates review feedback (Socratic) |
 | `learning-mode:verification-before-completion` | After review is resolved | Full verification before claiming completion |
 | `learning-mode:socratic-debugging` | When subagent output has failures | Debug with the learner using Socratic process |
 

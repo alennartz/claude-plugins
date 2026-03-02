@@ -1,6 +1,6 @@
 ---
-name: receiving-code-review
-description: Use when code review feedback has been returned by the code-reviewer subagent. Teaches the learner to critically evaluate review comments, distinguish important feedback from noise, and articulate technical reasoning before the coding agent implements changes.
+name: evaluating-code-review
+description: Use when code review feedback has been returned by the code-reviewer subagent. Teaches the learner to critically evaluate review comments, distinguish important feedback from noise, and articulate technical reasoning before the implementer implements changes.
 ---
 
 # Receiving Code Review: Teaching Critical Evaluation of Feedback
@@ -11,7 +11,7 @@ description: Use when code review feedback has been returned by the code-reviewe
 
 Receiving code review is not a passive activity. It is a skill that requires technical judgment: Which comments reveal real problems? Which are stylistic noise? Which misunderstand the codebase? Junior engineers often fall into one of two failure modes -- accepting all feedback uncritically (people-pleasing) or dismissing all feedback defensively (ego protection). Both bypass the thinking that makes review valuable.
 
-This skill has a two-part structure. In Part 1, the learner evaluates every review comment, classifies it, and defends their classification with reasoning. In Part 2, the coding agent receives the learner-filtered review and implements changes -- but if the coding agent disagrees with the learner's filtering, that disagreement becomes another teaching moment.
+This skill has a two-part structure. In Part 1, the learner evaluates every review comment, classifies it, and defends their classification with reasoning. In Part 2, the implementer receives the learner-filtered review and implements changes -- but if the implementer disagrees with the learner's filtering, that disagreement becomes another teaching moment.
 
 **Core principle:** Not all review comments are equal. The ability to distinguish signal from noise -- and to articulate WHY -- is a skill that separates experienced engineers from junior ones. Build that skill here.
 
@@ -22,7 +22,7 @@ This skill has a two-part structure. In Part 1, the learner evaluates every revi
 2. NO SKIPPING THE WHY — classification without reasoning is worthless; always probe
 3. NO RUSHING TO IMPLEMENTATION — the evaluation phase takes as long as it takes
 4. NO REVEALING YOUR ASSESSMENT FIRST — the learner classifies before you react
-5. NO ABANDONING DISAGREEMENTS — when the coding agent disagrees with the learner, teach through it
+5. NO ABANDONING DISAGREEMENTS — when the implementer disagrees with the learner, teach through it
 ```
 
 Violating any Iron Law means starting over from the point of violation.
@@ -30,8 +30,8 @@ Violating any Iron Law means starting over from the point of violation.
 ## When to Use
 
 Auto-trigger when:
-- The code-reviewer subagent returns feedback (dispatched via `learning-mode:requesting-code-review`)
-- The learner receives code review comments from any external source
+- The milestone code review returns feedback at the end of `learning-mode:executing-plans`
+- The learner receives code review comments from any external source (PR review, human reviewer)
 - The learner asks "what should I do about this review?"
 
 ## Process Flow
@@ -68,14 +68,14 @@ digraph receiving_code_review {
     }
 
     subgraph cluster_part2 {
-        label="Part 2: Coding Agent Implements + Validates Filtering";
+        label="Part 2: Implementer Applies Changes + Validates Filtering";
         style=solid;
         color=black;
         fontsize=12;
 
-        p2_dispatch [label="Dispatch coding agent\nwith learner-filtered\nreview" shape=box];
-        p2_implement [label="Coding agent\nimplements changes" shape=box];
-        p2_disagree [label="Does coding agent\ndisagree with any\nlearner dismissal?" shape=diamond];
+        p2_dispatch [label="Resume implementer\nwith learner-filtered\nreview" shape=box];
+        p2_implement [label="Implementer\napplies changes" shape=box];
+        p2_disagree [label="Does implementer\ndisagree with any\nlearner dismissal?" shape=diamond];
         p2_teach [label="Teaching moment:\npresent disagreement\nto learner\n(Socratic probing)" shape=box style=filled fillcolor=lightyellow];
         p2_resolve [label="Learner resolves\ndisagreement\n(may update filter)" shape=box style=filled fillcolor=lightblue];
         p2_complete [label="Changes implemented\nand verified" shape=doublecircle];
@@ -173,24 +173,26 @@ After all comments are evaluated, ask the learner to summarize their filtered li
 
 Ask: "Looking at your filtered list as a whole, does the overall picture make sense? Are you acting on the right things?"
 
-## Part 2: Coding Agent Implements Changes
+## Part 2: Implement Changes
 
-The coding agent receives the learner-filtered review and implements the changes the learner decided to act on.
+After the learner builds their filtered list, implement the accepted changes and handle any disagreements that arise.
 
-### Step 1: Dispatch the Coding Agent
+### Step 1: Implement the Accepted Changes
 
-Pass the filtered review to the coding agent with clear instructions:
-- Which comments to implement
+**Resume the implementer subagent** (from the executing-plans flow) with the learner's filtered review:
+- Which comments to implement (with the learner's reasoning for why they matter)
 - Which comments the learner decided to skip (with the learner's reasoning)
 - Which comments the learner wants to push back on
 
-The coding agent implements the accepted changes.
+The implementer has full context of what it built and can fix efficiently. Do NOT dispatch a fresh agent — the resume pattern preserves context.
+
+**If this review was triggered outside executing-plans** (ad-hoc, external review), dispatch a fresh implementer with the relevant code context and the filtered review.
 
 ### Step 2: Handle Disagreements
 
-**This is where the skill gets powerful.** If the coding agent would push back on something the learner chose to skip or accept, this becomes a teaching moment.
+**This is where the skill gets powerful.** If the implementer would push back on something the learner chose to skip or accept, this becomes a teaching moment.
 
-**When the coding agent disagrees with a dismissal:**
+**When the implementer disagrees with a dismissal:**
 
 Present the disagreement to the learner:
 
@@ -201,7 +203,7 @@ This is NOT about overriding the learner. This is about:
 2. Forcing them to reconsider with new information
 3. Building the skill of defending or updating a position
 
-**When the coding agent disagrees with an acceptance:**
+**When the implementer disagrees with an acceptance:**
 
 > "You marked [comment] as important and the agent was going to implement it, but they noticed [reason it might not apply]. Do you still think we should make this change?"
 
@@ -214,10 +216,12 @@ Use the same Socratic probing as Part 1. The learner must either:
 
 Both outcomes are valid. The quality of the reasoning is what matters, not the conclusion.
 
+If the filter changes, **resume the implementer** again with the updated instructions.
+
 ### Step 4: Complete the Cycle
 
 After all disagreements are resolved:
-1. The coding agent finishes implementing changes
+1. The implementer finishes implementing changes
 2. Run verification per `learning-mode:verification-before-completion`
 3. Quick retrospective: "Which comment surprised you most in this review? What will you look for differently next time?"
 
@@ -248,7 +252,7 @@ These thoughts mean STOP -- you are about to violate the teaching process:
 | "This review comment is obviously wrong, I'll tell them to skip it" | They need to practice identifying bad feedback themselves. | Present it neutrally. See if they catch it. |
 | "They're accepting everything -- that's fine, the review was good" | Uncritical acceptance is a red flag, not a sign of good review. Probe the WHY. | "You've agreed with everything so far. Walk me through your reasoning on this one." |
 | "They're rejecting everything -- they're clearly defensive" | Maybe. Or maybe the review was weak. Probe the reasoning, don't assume the motive. | "You've pushed back on several comments. What's your overall read on this review?" |
-| "The coding agent agrees with the learner, so no teaching needed" | Agreement doesn't mean understanding. The learner might be right for the wrong reasons. | The WHY probing in Part 1 already handles this. Trust the process. |
+| "The implementer agrees with the learner, so no teaching needed" | Agreement doesn't mean understanding. The learner might be right for the wrong reasons. | The WHY probing in Part 1 already handles this. Trust the process. |
 | "This disagreement is too subtle to teach" | Subtle disagreements are where judgment is built. | Break it into smaller questions. Use the scaffolding ladder. |
 | "They're getting frustrated with evaluating each comment" | Frustration means advance the scaffolding, not abandon the process. | "I know this is detailed work. Let's focus on the ones you're least sure about." |
 | "There are too many comments to evaluate individually" | Evaluate the most important ones thoroughly. Group trivially similar ones. Never skip the process entirely. | "Let's prioritize: which comments do you think have the biggest impact?" |
@@ -264,7 +268,7 @@ If you catch yourself thinking any of these, you are rationalizing your way out 
 | "This is a trivial review, not worth the full process" | Trivial reviews are where unexamined habits form. The learner who rubber-stamps trivial reviews will rubber-stamp critical ones too. |
 | "The reviewer is clearly right about everything" | Even a perfect review requires the learner to understand WHY each comment matters. Agreement without understanding is not learning. |
 | "The reviewer is clearly wrong about everything" | Even a bad review contains teaching moments about how to identify and respond to bad feedback. |
-| "Part 2 is overkill, the coding agent won't disagree" | You don't know that. And if it does agree, Part 2 is trivially fast. Don't skip it. |
+| "Part 2 is overkill, the implementer won't disagree" | You don't know that. And if it does agree, Part 2 is trivially fast. Don't skip it. |
 | "I'll speed things up by pre-classifying the comments" | Pre-classification is doing the thinking for the learner. The classification IS the exercise. |
 | "The learner classified everything correctly, no need to probe WHY" | Correct classification without reasoning is a guess that happened to be right. Always probe WHY. |
 
@@ -279,7 +283,7 @@ This skill builds four capabilities:
 
 ## Integration with Other Skills
 
-- **`learning-mode:requesting-code-review`**: Triggers the review whose feedback this skill processes. The flow is: `requesting-code-review` dispatches the code-reviewer subagent, then `receiving-code-review` teaches the learner to evaluate the results.
+- **`learning-mode:executing-plans`**: The milestone code review at the end of executing-plans dispatches the code-reviewer agent, then this skill teaches the learner to evaluate the results.
 - **`learning-mode:verification-before-completion`**: Use after Part 2 to verify that implemented changes actually work.
 - **`learning-mode:test-driven-development`**: If the learner decides to act on a review comment, the fix may flow through TDD.
 
@@ -335,11 +339,11 @@ This skill builds four capabilities:
 
 ## Example Interaction: Part 2
 
-**Scenario:** Continuing from Part 1. The learner's filtered list: act on comments 1 and 3, skip comment 2 (repository pattern). The coding agent receives this and implements changes.
+**Scenario:** Continuing from Part 1. The learner's filtered list: act on comments 1 and 3, skip comment 2 (repository pattern). The implementer receives this and implements changes.
 
 ---
 
-**Claude:** "The coding agent has implemented the error handling fix and the token validation. But it flagged something about the repository pattern comment you skipped. The agent says: 'While implementing the token validation, I noticed the handler is now 80 lines long with mixed concerns -- HTTP handling, validation logic, database queries, and now authentication checks. The handler is doing too much. A repository pattern or at minimum extracting the database logic would improve testability.'"
+**Claude:** "The implementer has applied the error handling fix and the token validation. But it flagged something about the repository pattern comment you skipped. The agent says: 'While implementing the token validation, I noticed the handler is now 80 lines long with mixed concerns -- HTTP handling, validation logic, database queries, and now authentication checks. The handler is doing too much. A repository pattern or at minimum extracting the database logic would improve testability.'"
 
 **Claude:** "You dismissed the repository pattern earlier because it was one function with one consumer. The agent is raising a different concern -- not abstraction for swappability, but separation of concerns for testability. What do you think now?"
 

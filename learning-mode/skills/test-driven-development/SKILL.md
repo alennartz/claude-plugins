@@ -281,7 +281,7 @@ These signal TDD discipline is breaking down:
 
 - **`learning-mode:socratic-debugging`**: When a test fails unexpectedly during GREEN or REFACTOR, switch to socratic-debugging to understand why. Return to TDD after the root cause is understood.
 - **`learning-mode:verification-before-completion`**: Before claiming a feature is complete, verify ALL tests pass with fresh output. Evidence before assertions.
-- **`learning-mode:requesting-code-review`**: After completing a feature through TDD, request code review. The reviewer can evaluate both the tests and the production code.
+- **`learning-mode:code-reviewer`** (agent): After completing a feature through TDD, dispatch the code-reviewer agent. The reviewer can evaluate both the tests and the production code.
 - **`learning-mode:socratic-brainstorming`**: If TDD reveals that the design needs rethinking (tests are too painful to write, indicating a design smell), transition to brainstorming.
 
 ## Example Interaction Sketch

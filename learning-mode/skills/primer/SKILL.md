@@ -68,11 +68,11 @@ When multiple skills could apply, use this order:
 
 1. **Process skills first** (socratic-brainstorming, socratic-debugging) — these determine HOW to approach the task
 2. **Implementation skills second** (writing-plans, test-driven-development, executing-plans) — these guide execution
-3. **Quality skills third** (requesting-code-review, receiving-code-review, verification-before-completion) — these ensure correctness
+3. **Quality skills third** (evaluating-code-review, verification-before-completion) — these ensure correctness
 
 "Let's build X" → socratic-brainstorming first, then writing-plans.
 "Fix this bug" → socratic-debugging first, then test-driven-development.
-"Review my code" → requesting-code-review, then receiving-code-review for the teaching flow.
+"Review my code" → dispatch code-reviewer agent, then evaluating-code-review for the teaching flow.
 
 ## Skill Types
 

@@ -22,8 +22,7 @@ Inspired by Andrej Karpathy's first-principles teaching approach and the Socrati
 | `test-driven-development` | Rigid | Standard TDD with business logic test review (learner explains key tests) |
 | `executing-plans` | Flexible | Batched AUTO execution + private-review-then-Socratic-teaching for REVIEW tasks |
 | `verification-before-completion` | Rigid | Evidence before claims — unchanged from superpowers |
-| `requesting-code-review` | Flexible | Dispatch code-reviewer agent — unchanged from superpowers |
-| `receiving-code-review` | Rigid | Two-part flow: learner evaluates review comments, then coding agent receives filtered review |
+| `evaluating-code-review` | Rigid | Learner evaluates review comments critically, then implementer receives filtered review |
 
 ## Agents
 
@@ -39,7 +38,7 @@ socratic-brainstorming → writing-plans → executing-plans
     Design doc + ADRs    Impl plan     AUTO batches + REVIEW tasks
                                               ↓
                                        milestone code review
-                                       (requesting → receiving)
+                                       (code-reviewer → evaluating-code-review)
                                               ↓
                                        verification → docs → done
 ```
