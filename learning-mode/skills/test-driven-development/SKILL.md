@@ -31,6 +31,19 @@ From Robert C. Martin:
 
 These three laws create a tight feedback loop. Each cycle should be measured in minutes, not hours.
 
+## The Black-Box Principle
+
+Unit tests MUST be black-box. Test observable behavior through public interfaces, not implementation details.
+
+- Assert on **outputs, return values, side effects, and observable state changes**
+- Do NOT assert on internal state, private methods, or call sequences
+- Do NOT verify that specific internal functions were called or in what order
+- If you need to reach inside the unit to verify something, the test is coupled to the implementation
+
+**The litmus test:** If a refactor changes the internal structure of a unit but preserves its external behavior, every unit test MUST still pass. A test that breaks on a behavior-preserving refactor is a test coupled to implementation -- fix the test, not the code.
+
+**Integration tests** may access internals when needed to verify cross-module interactions, but prefer black-box approaches even there. The higher the test level, the more it should resemble how a real user or caller interacts with the system.
+
 ## When to Use
 
 Auto-trigger on ANY of these:
@@ -112,14 +125,16 @@ After writing tests for a feature or task, identify the tests that cover core bu
 
 ### What Qualifies as a Business Logic Test
 
-**Include in review (max 2-3 per cycle):**
-- Tests that verify core domain rules (e.g., "expired accounts cannot place orders")
-- Tests that protect important invariants (e.g., "balance never goes negative")
-- Tests that cover critical user-facing behavior (e.g., "cancelled subscription stops access immediately")
-- Integration-level tests that verify workflows across module boundaries
-- Tests that encode non-obvious business rules a future developer might accidentally break
+**Prefer integration-level tests for review.** The best teaching moments come from tests that validate user-level workflows and cross-module interactions -- these force the learner to reason about how components work together, not just what one function returns. A test that walks through "user places order → inventory decrements → confirmation email queued" teaches more about what the system protects than a unit test for a single discount calculation.
+
+**Include in review (max 2-3 per cycle), in order of preference:**
+1. **Integration tests that verify end-to-end workflows** across module boundaries (e.g., "placing an order with an expired account fails at checkout and does not charge the card")
+2. **Tests that protect critical user-facing behavior** through realistic interactions (e.g., "cancelled subscription stops access immediately, mid-session")
+3. **Tests that encode non-obvious business rules** a future developer might accidentally break, especially where the rule spans multiple components
+4. **Unit tests for core domain rules** when the rule is important enough AND no integration test covers it yet (e.g., "balance never goes negative" as a domain model invariant)
 
 **Skip for review (proceed normally through TDD):**
+- Unit tests for isolated functions (these should still be black-box, but don't need Socratic review)
 - Utility function tests (string formatting, data transformation helpers)
 - Plumbing tests (serialization, configuration loading, route registration)
 - Trivial accessor or constructor tests
@@ -263,7 +278,7 @@ These signal TDD discipline is breaking down:
 | GREEN phase produces "extra" code | Gold-plating the implementation | Delete the extra code. Write a test that demands it. |
 | Refactoring changes behavior | That's not refactoring, that's feature creep | Undo. New behavior needs a new RED. |
 | Tests only run at the end | Not getting the feedback loop | Run after every change |
-| Test describes HOW, not WHAT | Implementation coupling | Rewrite the test to describe behavior |
+| Test describes HOW, not WHAT | Implementation coupling -- violates the black-box principle | Rewrite the test to assert on observable behavior, not internals |
 | Learner can't explain what a business test protects | Gap in domain understanding | Business logic test review with scaffolding |
 
 ## Common Anti-Patterns
@@ -273,7 +288,7 @@ These signal TDD discipline is breaking down:
 | **Test-After Development** | Write code, then write tests to cover it | Tests mirror implementation, not behavior. Misses edge cases the code doesn't handle. |
 | **Big Bang Testing** | Write all tests for a feature at once, then implement | Loses the design feedback from incremental test-first cycles. |
 | **Testing the Mock** | Tests pass because mocks are configured to match the code | You're testing your assumptions, not the system. |
-| **Fragile Tests** | Tests break when implementation changes but behavior doesn't | Tests are coupled to implementation, not behavior. |
+| **Fragile Tests** | Tests break when implementation changes but behavior doesn't | Tests violate the black-box principle. Rewrite to assert on observable behavior. |
 | **Test-Per-Method** | One test class per production class, one test per method | Tests reflect code structure, not behavior. Misses interactions. |
 | **Commenting Out Failing Tests** | "I'll fix it later" | You now have code without a safety net. Uncomment and fix. |
 
@@ -283,6 +298,12 @@ These signal TDD discipline is breaking down:
 - **`learning-mode:verification-before-completion`**: Before claiming a feature is complete, verify ALL tests pass with fresh output. Evidence before assertions.
 - **`learning-mode:code-reviewer`** (agent): After completing a feature through TDD, dispatch the code-reviewer agent. The reviewer can evaluate both the tests and the production code.
 - **`learning-mode:socratic-brainstorming`**: If TDD reveals that the design needs rethinking (tests are too painful to write, indicating a design smell), transition to brainstorming.
+
+## Context-Dependent Behavior
+
+This skill serves two contexts: **interactive use** (learner doing TDD directly or during REVIEW tasks) and **subagent execution** (AUTO batches in executing-plans where no learner is present).
+
+When invoked by subagents during AUTO execution, the business logic test review is skipped -- there is no learner to question. The red-green-refactor discipline and the black-box principle still apply in full. The orchestrator's REVIEW flow in executing-plans handles Socratic teaching for the tasks that warrant learner engagement.
 
 ## Example Interaction Sketch
 
