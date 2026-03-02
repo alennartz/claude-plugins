@@ -171,15 +171,6 @@ Apply the adaptive scaffolding ladder from `${CLAUDE_PLUGIN_ROOT}/references/ped
 
 **Reset the ladder for each test under review.**
 
-### For Advanced Learners
-
-If appropriate for the learner's level, instead of presenting the test code:
-
-1. Describe the behavior that needs testing in plain English
-2. Ask the learner to write the test themselves
-3. Compare their test to yours -- discuss differences in approach, coverage, and edge cases
-4. This is the highest-value version of the review because the learner must reason about both the business rule AND the testing strategy
-
 ### Cap and Discipline
 
 - **Maximum 2-3 tests per review cycle.** Do not overwhelm. Pick the ones that matter most.
@@ -236,7 +227,9 @@ With all tests passing, improve the code structure WITHOUT changing behavior.
 4. **If yes, repeat from step 1 or move to the next RED cycle.**
 5. **If no, undo the change. Figure out why it broke. Try again.**
 
-## Strict Enforcement
+## Strict Enforcement (Implementing Agent Discipline)
+
+The following rules apply to the **implementing agent** (whether the learner is coding directly or a subagent is executing). These enforce TDD discipline during code production. They are NOT Socratic teaching instructions -- they are process guardrails.
 
 ### Write Code Before the Test? Delete It. Start Over.
 

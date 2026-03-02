@@ -15,12 +15,14 @@ Two execution modes:
 - **AUTO tasks** are batched into a single subagent per consecutive run. Fast, no learner involvement.
 - **REVIEW tasks** get a fresh implementer subagent, then a private reviewer subagent, then Socratic teaching with the learner. The orchestrator knows what's right and wrong before the learner sees anything.
 
+The **orchestrator** is the primary Claude agent running this skill -- the main session the learner interacts with. It coordinates subagents, manages the task flow, and conducts all Socratic interactions with the learner.
+
 Refer to `${CLAUDE_PLUGIN_ROOT}/references/pedagogy.md` for the Socratic teaching stance applied during review steps.
 
 ## The Core Loop
 
 ```
-1. Read plan, autonomously classify all tasks (internal — not shown to learner)
+1. Read plan, classify all tasks, present brief summary to learner
 2. Group consecutive AUTO tasks into batches
 3. Execute in order:
    - AUTO batch → single subagent implements all tasks in batch, commit, proceed
@@ -106,7 +108,13 @@ digraph executing_plans {
 
 ## Step 1: Read and Classify the Plan (Autonomous)
 
-Read the implementation plan. Classify each task internally. **Do NOT present the classification to the learner.** There is no upfront confirmation step. You start executing immediately after classification.
+Read the implementation plan. Classify each task internally.
+
+**Present a brief summary to the learner before execution begins.** Keep it lightweight -- one or two sentences, not a detailed justification per task. Example:
+
+> "I've read through the plan. I'll handle tasks 1-2, 4-6, and 8-10 automatically -- they're straightforward scaffolding and wiring. I'll pause for us to discuss tasks 3, 7, and 11 together since they involve [brief reason]. Sound good, or would you like to discuss any others too?"
+
+The learner can simply say "OK" or add tasks they want to review. This gives them visibility without creating overhead. Do NOT present a detailed classification table or justify each decision -- a quick summary with the option to adjust is sufficient.
 
 ### Classification: REVIEW vs AUTO
 
@@ -157,10 +165,8 @@ After the implementer returns, dispatch the **reviewer subagent** on the batch d
 
 - **Reviewer returns clean:** Commit the batch, move on.
 - **Reviewer finds issues:** Resume the implementer subagent (using its agent ID) with the reviewer's findings. The implementer has full context of what it built and fixes efficiently. After fixes, commit and move on.
-- Do NOT involve the learner unless something unexpected happened (reclassification -- see below).
+- Do NOT involve the learner for routine AUTO fixes.
 - Do NOT have the orchestrator fix issues itself -- that pollutes the main context. Always route fixes back to the implementer.
-
-**Reclassification during execution:** If the reviewer's findings reveal unexpected ambiguity or a risky autonomous decision on a task you classified as AUTO, pull that task out and run it through the REVIEW flow (Step 3) before committing.
 
 **Batch size limit:** If a consecutive AUTO run exceeds ~8 tasks, split it into multiple batches to limit context rot risk. This is a soft guideline, not a hard rule -- adjust based on task complexity.
 
@@ -251,7 +257,13 @@ Run full verification using `learning-mode:verification-before-completion` -- al
 
 ## Step 6: Documentation Update
 
-After verification passes, update project documentation to reflect what was built. This step is **not Socratic** -- the orchestrator handles it directly.
+After verification passes, update project documentation to reflect what was built.
+
+**Light Socratic touch:** Before writing documentation, briefly present the plan to the learner:
+
+> "Here's what I'm planning to document: [list]. And here's what I think doesn't need documentation updates: [list with brief reasons]. What do you think?"
+
+The learner can agree or adjust. This builds documentation judgment without making the step heavy. After agreement, the orchestrator writes the documentation directly.
 
 **Update or create as needed:**
 - **README or relevant docs:** If the feature changes how the project is used, update usage documentation
@@ -300,7 +312,7 @@ These thoughts mean STOP -- you are drifting from the process:
 | Thought | Reality | Instead |
 |---------|---------|---------|
 | "Nothing in this plan needs review" | Every non-trivial plan has at least one task with spec ambiguity or domain risk. You are being lazy with classification. | Re-read the plan looking specifically for ambiguity and autonomous decision risk. |
-| "I should present the full classification upfront" | The learner does not need to see or approve the classification. That is overhead, not value. | Classify internally, execute, surface REVIEW tasks one at a time as they arrive. |
+| "I should present a detailed classification justification" | A detailed per-task justification is overhead. A quick summary with the option to adjust is sufficient. | Brief summary: "I'll auto-handle X, Y, Z and we'll discuss A, B, C. Sound good?" |
 | "I'll skip the private reviewer and just eyeball it" | The private reviewer gives you specific findings to guide Socratic questioning. Without it, you are guessing what to probe. The reviewer IS the preparation that makes teaching effective. | Dispatch the reviewer. Use its findings. |
 | "The reviewer found nothing, so I'll skip the learner review" | A clean reviewer report means you can confirm the learner's approval quickly. It does not mean you skip presenting the output. REVIEW tasks are surfaced for a reason. | Present it. If the learner confirms and the reviewer agrees, acknowledge and move on fast. |
 | "I'll dispatch one subagent per AUTO task" | Consecutive AUTO tasks should be batched. One-per-task wastes time re-loading codebase context for boilerplate. | Batch consecutive AUTO tasks into a single subagent. |
@@ -330,7 +342,7 @@ These thoughts mean STOP -- you are drifting from the process:
 - **Optimize for spec ambiguity and decision risk.** The question is not "is this business logic?" but "could the LLM get this wrong without the learner's input?"
 - **Connect execution to design.** When reviewing tasks, reference the decisions the learner made during brainstorming.
 - **Socratic review, not interrogation.** The review step uses targeted questions, not a quiz. If the output is correct and the learner confirms it, move on.
-- **Reclassify on the fly.** If an AUTO task produces surprising output, upgrade it. If a REVIEW task is trivially mechanical, move through it quickly.
+- **Move through trivial REVIEW tasks quickly.** If a REVIEW task turns out to be straightforwardly correct, acknowledge and move on. Don't manufacture problems.
 - **Milestone review sees the whole picture.** Individual task reviews catch per-task issues. The milestone review catches integration issues. Both serve different purposes.
 - **Evidence before completion.** Full verification at the end. No exceptions.
 - **Document what you built.** Documentation is part of done.

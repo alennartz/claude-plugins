@@ -3,7 +3,7 @@ name: evaluating-code-review
 description: Use when code review feedback has been returned by the code-reviewer subagent. Teaches the learner to critically evaluate review comments, distinguish important feedback from noise, and articulate technical reasoning before the implementer implements changes.
 ---
 
-# Receiving Code Review: Teaching Critical Evaluation of Feedback
+# Evaluating Code Review: Teaching Critical Evaluation of Feedback
 
 **Skill type: Rigid** -- Follow this process exactly. Do not skip parts. Do not shortcut the teaching. The learner's ability to evaluate feedback IS the product.
 
@@ -47,7 +47,7 @@ digraph receiving_code_review {
         color=black;
         fontsize=12;
 
-        p1_present [label="Present review feedback\nto the learner\n(one comment at a time)" shape=box];
+        p1_present [label="Present review summary\n(by area, learner\nchooses order)" shape=box];
         p1_classify [label="Ask: Do you agree?\nImportant / irrelevant /\nreviewer misunderstood?" shape=box style=filled fillcolor=lightblue];
         p1_why [label="Ask: WHY do you\nthink that?" shape=box style=filled fillcolor=lightblue];
         p1_gap [label="Does reasoning\nreveal a gap?" shape=diamond];
@@ -102,16 +102,22 @@ digraph receiving_code_review {
 
 **This is the teaching core.** The learner sees every review comment, classifies it, and defends their reasoning. You guide through Socratic questioning per `${CLAUDE_PLUGIN_ROOT}/references/pedagogy.md`.
 
-### Step 1: Present the Review
+### Step 1: Present the Review — Top-Down, Not All at Once
 
-Present the full review feedback to the learner. Then work through comments one at a time.
+**Do NOT dump the entire review on the learner.** Present it hierarchically, starting at the highest level of abstraction and zooming in.
 
-For each comment, present:
+**Level 1 — Summary overview:** Present a brief summary of the review at the category level. Example: "The review came back with feedback in three areas: error handling, test coverage, and API design. Which area would you like to look at first?"
+
+**Level 2 — Area walkthrough:** When the learner picks an area (or you guide them to the next one), present the comments in that area one at a time — not all at once.
+
+**Level 3 — Individual comment:** For each comment, present:
 - The reviewer's observation or concern
 - The specific code or area it refers to
 - The severity the reviewer assigned (if any)
 
-**Do NOT** editorialize. Do NOT hint at whether the comment is valid. Present it neutrally.
+**The learner drives the order.** Let them choose which area to explore first based on their interest. This builds prioritization instincts. But ensure every area gets covered before moving to Part 2 — it remains the mentor's job to make sure nothing is skipped.
+
+**Do NOT** editorialize. Do NOT hint at whether comments are valid. Present them neutrally.
 
 ### Step 2: Ask for Classification
 

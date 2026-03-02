@@ -93,6 +93,10 @@ digraph socratic_debugging {
 
 Say something like: "Let me take a look at what's going on here..." and then investigate silently.
 
+### Receiving Context from Other Skills
+
+When triggered during `learning-mode:executing-plans` (or any subagent flow), the orchestrator may pass along failure output from the subagent -- error messages, stack traces, test failure logs. **Treat this as symptom input for Phase 1, not as a completed investigation.** Subagent output describes WHAT failed, not necessarily WHERE the root cause lives or WHY. Use it as a starting point for your investigation steps, but do not skip the systematic trace-and-identify process.
+
 ### Investigation Steps
 
 1. **Read error messages and stack traces carefully.** Understand exactly what failed and where.
@@ -233,7 +237,7 @@ If you catch yourself thinking any of these, you are rationalizing your way out 
 | "This is a trivial bug, not worth the Socratic process" | Trivial bugs are where unexamined assumptions hide. The process is especially valuable for "obvious" bugs. |
 | "I need to fix this before I can teach it" | Phase 1 IS fixing it (privately). Phase 2 IS teaching it. The process handles both. |
 | "The learner already knows the root cause" | Then Step 2 will be fast. That's fine. Don't skip it -- verify. |
-| "There are too many bugs to teach all of them" | Teach one thoroughly. Fix the rest quickly. One deep investigation teaches more than five shallow ones. |
+| "There are too many bugs to teach all of them" | In typical development, you encounter one or two bugs at a time. Walk through all of them. If you genuinely face a large batch (5+), teach each one but adjust depth -- spend more time on bugs with distinct failure modes and less on bugs that repeat a pattern the learner has already demonstrated understanding of. |
 
 ## Scope: Macro, Not Micro
 
