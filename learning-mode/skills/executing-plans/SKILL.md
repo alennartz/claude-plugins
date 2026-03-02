@@ -43,18 +43,20 @@ digraph executing_plans {
     check_type [label="Type?" shape=diamond];
 
     // AUTO path
-    dispatch_batch [label="Dispatch single subagent\nfor entire AUTO batch\n(with TDD)"];
-    batch_self_check [label="Review batch output\nfor obvious errors"];
+    dispatch_batch [label="Dispatch single\nimplementer subagent\nfor entire AUTO batch\n(save agent ID)"];
+    batch_review [label="Dispatch reviewer\non batch diff"];
+    batch_clean [label="Reviewer\nverdict?" shape=diamond];
     batch_commit [label="Commit batch"];
+    batch_fix [label="Resume implementer\nwith findings"];
 
     // REVIEW path
-    dispatch_impl [label="Dispatch fresh\nimplementer subagent\n(with TDD)"];
+    dispatch_impl [label="Dispatch fresh\nimplementer subagent\n(save agent ID)"];
     dispatch_reviewer [label="Dispatch private\nreviewer subagent\n(returns findings\nto orchestrator)"];
     orchestrator_prep [label="Orchestrator prepares\nSocratic questions\nfrom reviewer findings"];
     present_to_learner [label="Present output\nto learner"];
     learner_review [label="Learner evaluates\nimplementation" shape=diamond];
     socratic_probe [label="Socratic probing\nguided by reviewer\nfindings\n(per pedagogy.md)"];
-    fix [label="Discuss and fix\nissues"];
+    fix [label="Agree on fix direction\nthen resume implementer"];
     acknowledge [label="Acknowledge\nand proceed"];
     review_commit [label="Commit task"];
 
@@ -74,8 +76,11 @@ digraph executing_plans {
     check_type -> dispatch_batch [label="AUTO batch"];
     check_type -> dispatch_impl [label="REVIEW task"];
 
-    dispatch_batch -> batch_self_check;
-    batch_self_check -> batch_commit;
+    dispatch_batch -> batch_review;
+    batch_review -> batch_clean;
+    batch_clean -> batch_commit [label="clean"];
+    batch_clean -> batch_fix [label="issues"];
+    batch_fix -> batch_review [label="re-review"];
     batch_commit -> more_items;
 
     dispatch_impl -> dispatch_reviewer;
@@ -138,21 +143,24 @@ Batch 3 (AUTO): Tasks 8, 9, 10
 
 ## Step 2: Execute AUTO Batches
 
-Each AUTO batch gets a **single subagent** that implements all tasks in the batch sequentially. The subagent accumulates context as it works, which is beneficial -- it knows what it just scaffolded and can build on it without re-reading.
+Each AUTO batch gets a **single implementer subagent** that implements all tasks in the batch sequentially. The subagent accumulates context as it works, which is beneficial -- it knows what it just scaffolded and can build on it without re-reading.
 
-The subagent receives:
+The implementer subagent receives:
 - All task descriptions in the batch, in order
 - Relevant context (project structure, files involved)
 - Instructions to follow `learning-mode:test-driven-development` for TDD
 - The design document for reference
 
-After the batch subagent returns:
-- Review the output yourself for obvious errors
-- If correct: commit the batch, move on
-- If issues: fix them yourself, commit, move on
-- Do NOT involve the learner unless something unexpected happened
+**Save the implementer's agent ID** -- you may need to resume it for fixes.
 
-**Reclassification during execution:** If a batch subagent's output reveals unexpected ambiguity or a risky autonomous decision on a task you classified as AUTO, pull that task out and run it through the REVIEW flow (Step 3) before committing.
+After the implementer returns, dispatch the **reviewer subagent** on the batch diff. Same code-reviewer agent, same single-pass -- just pointed at the batch output instead of a single task.
+
+- **Reviewer returns clean:** Commit the batch, move on.
+- **Reviewer finds issues:** Resume the implementer subagent (using its agent ID) with the reviewer's findings. The implementer has full context of what it built and fixes efficiently. After fixes, commit and move on.
+- Do NOT involve the learner unless something unexpected happened (reclassification -- see below).
+- Do NOT have the orchestrator fix issues itself -- that pollutes the main context. Always route fixes back to the implementer.
+
+**Reclassification during execution:** If the reviewer's findings reveal unexpected ambiguity or a risky autonomous decision on a task you classified as AUTO, pull that task out and run it through the REVIEW flow (Step 3) before committing.
 
 **Batch size limit:** If a consecutive AUTO run exceeds ~8 tasks, split it into multiple batches to limit context rot risk. This is a soft guideline, not a hard rule -- adjust based on task complexity.
 
@@ -169,6 +177,8 @@ The subagent receives:
 - Relevant context (project structure, files involved, outputs from prior tasks that this task depends on)
 - Instructions to follow `learning-mode:test-driven-development` for TDD
 - The design document and any relevant ADRs
+
+**Save the implementer's agent ID** -- you will resume it if fixes are needed after review.
 
 ### Phase 2: Private Evaluation
 
@@ -203,7 +213,7 @@ Frame it as: "Here's what was implemented for [task]. Take a look and tell me if
 **Evaluate the learner's response.** Three outcomes:
 
 **Learner spots real issues:**
-Good -- they are engaged and reading the code. Discuss the issues, agree on fixes, implement them. If they spotted something the reviewer also found, acknowledge their catch. If they spotted something the reviewer missed, even better.
+Good -- they are engaged and reading the code. Discuss the issues, agree on the fix direction, then **resume the implementer subagent** with the agreed fixes. The implementer has full context of what it built and can fix efficiently. Do NOT have the orchestrator write fixes itself.
 
 **Learner approves, but the reviewer found issues:**
 This is the teaching moment. Use the reviewer's findings to ask targeted Socratic questions per `${CLAUDE_PLUGIN_ROOT}/references/pedagogy.md`:
@@ -213,6 +223,8 @@ This is the teaching moment. Use the reviewer's findings to ask targeted Socrati
 - If the reviewer found missing test coverage: "The tests cover the happy path well. What scenarios might we be missing?"
 
 Apply the adaptive scaffolding ladder. Do NOT reveal the issue directly unless the learner is stuck after multiple attempts. The reviewer's findings tell you exactly what to probe -- you are not guessing.
+
+Once the learner identifies the issue (or is guided to it), agree on the fix direction, then **resume the implementer subagent** to apply the fix.
 
 **Learner approves, and reviewer confirms implementation is correct:**
 Acknowledge and move on. Do not manufacture problems or over-question correct work. "This looks solid -- it matches the design well. The [specific aspect] is particularly clean. Moving on."
@@ -293,7 +305,8 @@ These thoughts mean STOP -- you are drifting from the process:
 | "The reviewer found nothing, so I'll skip the learner review" | A clean reviewer report means you can confirm the learner's approval quickly. It does not mean you skip presenting the output. REVIEW tasks are surfaced for a reason. | Present it. If the learner confirms and the reviewer agrees, acknowledge and move on fast. |
 | "I'll dispatch one subagent per AUTO task" | Consecutive AUTO tasks should be batched. One-per-task wastes time re-loading codebase context for boilerplate. | Batch consecutive AUTO tasks into a single subagent. |
 | "The learner approved it, so it must be fine" | The learner might have missed something the reviewer caught. Check the reviewer's findings before committing. | If the reviewer found issues, use Socratic probing to guide the learner there. |
-| "I'll reuse the REVIEW implementer for the next task" | Fresh subagent for each REVIEW task prevents context bleed. AUTO batches can reuse context within the batch. | Fresh implementer for REVIEW tasks. Batched subagent for AUTO runs. |
+| "I'll just fix the issues myself instead of resuming the implementer" | The implementer has full context of what it built. Fixing in the orchestrator pollutes the main context. | Always resume the implementer for fixes -- both AUTO and REVIEW tasks. |
+| "I'll reuse the REVIEW implementer for the next task" | Fresh subagent for each REVIEW task prevents context bleed. Resume is for fixes within the same task only. | Fresh implementer for each REVIEW task. Resume only to fix issues the reviewer found on that task. |
 | "Let me skip the milestone review, individual reviews were enough" | Individual REVIEW task reviews catch per-task issues. The milestone review catches integration-level issues. Both are needed. | Run the milestone review. It sees the full picture. |
 | "Let me skip verification, the tests passed during implementation" | `learning-mode:verification-before-completion` is non-negotiable at the end. | Run full verification. Evidence before claims. |
 | "Documentation can wait" | Documentation is part of completion. Undocumented features are unfinished features. | Update docs before claiming the work is done. |
