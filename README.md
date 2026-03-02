@@ -56,6 +56,23 @@ Simply ask Claude to test UI:
 
 See the [plugin README](./playwright-ui-tester/README.md) for detailed usage.
 
+### learning-mode
+
+A Socratic development mentor for early-career engineers. Transforms Claude from an answer machine into a guided learning experience where the learner makes every design decision and defends their reasoning.
+
+**Features:**
+- Socratic brainstorming — design through guided discovery, not dictation
+- Architecture Decision Records capturing the learner's reasoning
+- Implementation plans with autonomous REVIEW/AUTO classification
+- Batched execution for boilerplate, private-review-then-Socratic-teaching for high-risk tasks
+- TDD with business logic test review
+- Socratic debugging — private investigation, then teach backward
+- Code review where the learner evaluates feedback critically
+
+**Inspired by:** [superpowers](https://github.com/obra/superpowers) by Jesse Vincent and Karpathy's Socratic teaching methodology.
+
+See the [plugin README](./learning-mode/README.md) for detailed usage.
+
 ## License
 
 MIT
